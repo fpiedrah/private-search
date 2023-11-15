@@ -8,7 +8,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
 sentence-transformers = "^2.2.2"
-datasets = "^2.14.6"
 numpy = "^1.26.1"
 scikit-learn = "^1.3.2"
 tenseal = { git = "git@github.com:OpenMined/TenSEAL.git", tag = "v0.3.14"}
@@ -19,9 +18,10 @@ ruff = "^0.1.5"
 black = "^23.11.0"
 
 
-[tool.poetry.group.test.dependencies]
+[tool.poetry.group.examples.dependencies]
 jupyterlab = "^4.0.8"
-mypy = "^1.7.0"
+datasets = "^2.14.7"
+ipywidgets = "^8.1.1"
 
 [build-system]
 requires = ["poetry-core"]
