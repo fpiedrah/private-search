@@ -10,7 +10,7 @@ python = ">=3.9,<3.13"
 sentence-transformers = "^2.2.2"
 numpy = "^1.26.1"
 scikit-learn = "^1.3.2"
-tenseal = { git = "git@github.com:OpenMined/TenSEAL.git", tag = "v0.3.14"}
+tenseal = { git = "https://github.com/OpenMined/TenSEAL.git", tag = "v0.3.14"}
 
 
 [tool.poetry.group.lint.dependencies]
