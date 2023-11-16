@@ -5,6 +5,7 @@ from search import embedding
 from tenseal.enc_context import Context
 from tenseal.tensors.ckksvector import CKKSVector
 
+
 class Client:
     """
     Client class for interacting with a clustering model using encrypted queries.
@@ -27,28 +28,13 @@ class Client:
     - decrypt(result: CKKSVector) -> ArrayLike: Decrypt the result vector obtained from the server.
     - rank(result: ArrayLike, text: str) -> list[int]: Rank the clusters based on the result vector and input text.
     """
+
     def __init__(self, model: embedding.Model, centroids: ArrayLike, context: Context):
         self.model = model
         self.centroids = centroids
         self.clusters = len(centroids)
         self.size = self.centroids.shape[1]
         self.context = context
-
-    def _distance(self, embedding: str) -> ArrayLike:
-        """
-        Compute the Euclidean distance between centroids and an embedding.
-
-        Parameters:
-        - embedding (str): The embedding to calculate distances from.
-
-        Returns:
-        - ArrayLike: Array of distances between centroids and the input embedding.
-        """
-        distance = (self.centroids - embedding) ** 2
-        distance = numpy.sum(distance, axis=1)
-        distance = numpy.sqrt(distance)
-
-        return distance
 
     def query(self, text: str) -> CKKSVector:
         """
@@ -60,10 +46,13 @@ class Client:
         Returns:
         - CKKSVector: The encrypted query vector.
         """
-        query = numpy.zeros(self.clusters)
-        index = numpy.argmin(self._distance(self.model.encode(text)))
+        embedding = self.model.encode(text)
+        self.embedding_size = len(embedding)
 
-        query[index] = 1
+        cluster = numpy.argmax(self.centroids @ embedding)
+
+        query = numpy.zeros(self.clusters)
+        query[cluster] = 1
 
         return tenseal.ckks_vector(self.context, query)
 
@@ -77,9 +66,12 @@ class Client:
         Returns:
         - ArrayLike: The decrypted result as a NumPy array.
         """
-        result = numpy.array(result.decrypt())
+        result = result.decrypt()
+        result = numpy.array(result).reshape(
+            len(result) // self.embedding_size, self.embedding_size
+        )
 
-        return result.reshape(len(result) // self.size, self.size)
+        return result
 
     def rank(self, result: ArrayLike, text: str) -> list[int]:
         """
@@ -92,6 +84,4 @@ class Client:
         Returns:
         - list[int]: The ranked list of clusters.
         """
-        ranking = result @ self.model.encode(text).T
-
-        return numpy.flip(numpy.argsort(ranking)).tolist()
+        return result @ self.model.encode(text).T

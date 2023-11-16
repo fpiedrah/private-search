@@ -2,6 +2,7 @@ from numpy.typing import ArrayLike
 from sentence_transformers import SentenceTransformer
 from typing import Union
 
+
 class Model:
     """
     Wrapper class for a SentenceTransformer model to simplify text encoding.
@@ -21,6 +22,7 @@ class Model:
     encoded_data = model.encode("Hello, how are you?")
     ```
     """
+
     def __init__(self, id: str):
         self._model = SentenceTransformer(id)
 

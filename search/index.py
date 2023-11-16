@@ -1,8 +1,11 @@
 import math
 import numpy
+
+from numpy.typing import ArrayLike
 from search import embedding
 from sklearn.cluster import KMeans
 from tenseal.tensors.ckksvector import CKKSVector
+
 
 class Index:
     """
@@ -33,8 +36,10 @@ class Index:
     result = index.search(query_vector)
     ```
     """
+
     def __init__(self, model: embedding.Model, corpus: list[str]):
         self.corpus = model.encode(corpus)
+        self.embedding_size = len(self.corpus[0])
         self._clusterize()
         self._index()
 
@@ -59,22 +64,19 @@ class Index:
         Returns:
         - None
         """
-        index = {cluster: [] for cluster in range(self.clusters)}
+        index = [[] for _ in range(self.clusters)]
 
         for cluster, embedding in self.matching:
             index[cluster].append(embedding)
 
-        size = len(self.corpus[0])
-        filler = numpy.ones(size) * -10_000
+        filler = numpy.ones(self.embedding_size) * -10_000
+        self.max_size = max([len(val) for val in index])
 
-        max_size = max([len(cluster) for cluster in index.values()])
-
-        for cluster, embedding in index.items():
+        for cluster, embedding in enumerate(index):
             cluster_size = len(embedding)
+            index[cluster].extend([filler] * (self.max_size - cluster_size))
 
-            index[cluster].extend([filler] * (max_size - cluster_size))
-
-        self.matrix = numpy.array([value for value in index.values()])
+        self.matrix = numpy.array(index)
 
     def search(self, query: CKKSVector) -> ArrayLike:
         """
@@ -86,6 +88,6 @@ class Index:
         Returns:
         - ArrayLike: Result vector representing the closest match.
         """
-        matrix = self.matrix.reshape(self.matrix.shape[0], -1).tolist()
+        matrix = self.matrix.reshape(self.clusters, self.max_size * self.embedding_size)
 
-        return query.matmul(matrix)
+        return query @ matrix

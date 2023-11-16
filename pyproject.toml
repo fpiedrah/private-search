@@ -15,13 +15,14 @@ tenseal = { git = "git@github.com:OpenMined/TenSEAL.git", tag = "v0.3.14"}
 
 [tool.poetry.group.lint.dependencies]
 ruff = "^0.1.5"
-black = "^23.11.0"
+black = {extras = ["jupyter"], version = "^23.11.0"}
 
 
 [tool.poetry.group.examples.dependencies]
 jupyterlab = "^4.0.8"
 datasets = "^2.14.7"
 ipywidgets = "^8.1.1"
+
 
 [build-system]
 requires = ["poetry-core"]
